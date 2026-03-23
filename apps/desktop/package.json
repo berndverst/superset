@@ -26,6 +26,7 @@
 		"build": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --publish never",
 		"prepackage": "bun run copy:native-modules && bun run validate:native-runtime",
 		"package": "electron-builder --config electron-builder.ts",
+		"package:win": "electron-builder --config electron-builder.ts --win --x64 --publish never",
 		"install:deps": "electron-builder install-app-deps",
 		"release": "electron-builder --publish always",
 		"clean:dev": "rimraf ./node_modules/.dev",
