@@ -27,6 +27,7 @@
 		"prepackage": "bun run copy:native-modules && bun run validate:native-runtime",
 		"package": "electron-builder --config electron-builder.ts",
 		"package:win": "electron-builder --config electron-builder.ts --win --x64 --publish never",
+		"build:win": "bun run install:deps && bun run clean:dev && bun run generate:icons && bun run compile:app && bun run copy:native-modules && bun run validate:native-runtime && bun run package:win",
 		"install:deps": "electron-builder install-app-deps",
 		"release": "electron-builder --publish always",
 		"clean:dev": "rimraf ./node_modules/.dev",

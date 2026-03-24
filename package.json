@@ -30,7 +30,7 @@
 		"format:check": "bunx @biomejs/biome@2.4.2 format .",
 		"typecheck": "turbo typecheck",
 		"ui-add": "turbo run ui-add",
-		"postinstall": "./scripts/postinstall.sh",
+		"postinstall": "bun run scripts/postinstall.ts",
 		"clean": "git clean -xdf node_modules",
 		"clean:workspaces": "turbo clean",
 		"release:desktop": "./apps/desktop/create-release.sh",
@@ -48,7 +48,8 @@
 	"resolutions": {
 		"mastracode": "https://github.com/superset-sh/mastra/releases/download/mastracode-v0.4.0-superset.12/mastracode-0.4.0-superset.12.tgz",
 		"@mastra/core": "https://github.com/superset-sh/mastra/releases/download/mastracode-v0.4.0-superset.12/mastra-core-1.8.0-superset.1.tgz",
-		"@mastra/memory": "https://github.com/superset-sh/mastra/releases/download/mastracode-v0.4.0-superset.12/mastra-memory-1.5.2-superset.1.tgz"
+		"@mastra/memory": "https://github.com/superset-sh/mastra/releases/download/mastracode-v0.4.0-superset.12/mastra-memory-1.5.2-superset.1.tgz",
+		"node-gyp": ">=12.1.0"
 	},
 	"patchedDependencies": {
 		"@durable-streams/state@0.2.1": "patches/@durable-streams%2Fstate@0.2.1.patch"

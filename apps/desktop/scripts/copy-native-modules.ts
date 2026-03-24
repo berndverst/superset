@@ -22,6 +22,7 @@ import {
 	readdirSync,
 	readFileSync,
 	realpathSync,
+	rmdirSync,
 	rmSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
@@ -63,6 +64,28 @@ function findBunStoreFolderName(
 	return entries.find((entry) => entry.startsWith(modulePrefix)) ?? null;
 }
 
+/**
+ * On Windows, Bun creates directory junctions for symlinks. cpSync cannot
+ * recreate junctions (EPERM), so we skip nested symlinks during copy.
+ * This is safe because all required runtime modules are separately
+ * materialized from the flat list.
+ */
+function cpSyncSkippingSymlinks(
+	source: string,
+	dest: string,
+): void {
+	cpSync(source, dest, {
+		recursive: true,
+		filter: (src) => {
+			try {
+				return !lstatSync(src).isSymbolicLink();
+			} catch {
+				return true;
+			}
+		},
+	});
+}
+
 function copyModuleIfSymlink(
 	nodeModulesDir: string,
 	moduleName: string,
@@ -76,7 +99,10 @@ function copyModuleIfSymlink(
 		if (existsSync(bunFlatModulePath)) {
 			console.log(`  ${moduleName}: materializing from Bun store index`);
 			mkdirSync(dirname(modulePath), { recursive: true });
-			cpSync(realpathSync(bunFlatModulePath), modulePath, { recursive: true });
+			cpSyncSkippingSymlinks(
+				realpathSync(bunFlatModulePath),
+				modulePath,
+			);
 			console.log(`    Copied to: ${modulePath}`);
 			return true;
 		}
@@ -96,11 +122,17 @@ function copyModuleIfSymlink(
 		console.log(`  ${moduleName}: symlink -> replacing with real files`);
 		console.log(`    Real path: ${realPath}`);
 
-		// Remove the symlink
-		rmSync(modulePath);
+		// Remove the symlink. On Windows, Bun creates directory junctions
+		// which rmSync cannot remove (throws EFAULT). Use rmdirSync instead,
+		// which removes the junction reparse point without following it.
+		if (process.platform === "win32") {
+			rmdirSync(modulePath);
+		} else {
+			rmSync(modulePath);
+		}
 
 		// Copy the actual files
-		cpSync(realPath, modulePath, { recursive: true });
+		cpSyncSkippingSymlinks(realPath, modulePath);
 
 		console.log(`    Copied to: ${modulePath}`);
 	} else {
@@ -201,7 +233,7 @@ function copyAstGrepPlatformPackages(nodeModulesDir: string): void {
 			if (existsSync(sourcePath)) {
 				console.log(`  ${platformPkg.name}: copying from Bun store`);
 				mkdirSync(dirname(destPath), { recursive: true });
-				cpSync(sourcePath, destPath, { recursive: true });
+				cpSyncSkippingSymlinks(sourcePath, destPath);
 				if (isTargetPkg) resolvedTargetPackage = true;
 				continue;
 			}
@@ -344,7 +376,7 @@ function copyParcelWatcherPlatformPackages(nodeModulesDir: string): void {
 
 		console.log(`  ${platformPkg.name}: copying from Bun store`);
 		mkdirSync(dirname(destPath), { recursive: true });
-		cpSync(sourcePath, destPath, { recursive: true });
+		cpSyncSkippingSymlinks(sourcePath, destPath);
 		resolvedPlatformPackage = true;
 	}
 

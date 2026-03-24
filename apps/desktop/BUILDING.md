@@ -14,12 +14,19 @@ When building for release, make sure `node-pty` is built for the correct archite
 
 # Windows (NSIS installer) local build
 
-Must be run on a Windows machine with Visual Studio Build Tools installed (required for native modules such as `node-pty`).
+Must be run on a Windows machine with Visual Studio Build Tools installed
+(required for native modules such as `node-pty`). Visual Studio 2019, 2022,
+or 2026 are supported.
 
-From `apps/desktop`:
+From the **repository root**, install dependencies first:
 
 ```bash
-bun run install:deps
+bun install
+```
+
+Then from `apps/desktop`:
+
+```bash
 bun run clean:dev
 bun run generate:icons
 bun run compile:app
@@ -29,7 +36,7 @@ bun run package:win
 Or as a single chain:
 
 ```bash
-bun run install:deps && bun run clean:dev && bun run generate:icons && bun run compile:app && bun run package:win
+bun run clean:dev && bun run generate:icons && bun run compile:app && bun run package:win
 ```
 
 Expected outputs in `apps/desktop/release/`:
